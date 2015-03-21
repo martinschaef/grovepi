@@ -2,7 +2,7 @@ import time
 from beautifulhue.api import Bridge
 
 #WARNING: Adjust this to your local settings
-bridge = Bridge(device={'ip':'10.0.0.26'}, user={'name':'your-user-name'})
+bridge = Bridge(device={'ip':'10.0.0.26'}, user={'name':'your user name here'})
 
 # check if at least one light is on
 def is_light_on():
@@ -16,7 +16,7 @@ def switch_lights():
     resource = {
         'which':0,
         'data':{
-            'action':{'on':is_light_on()}
+            'action':{'on':(not is_light_on())}
         }
     }
     bridge.group.update(resource)

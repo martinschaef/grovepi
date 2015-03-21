@@ -1,59 +1,53 @@
-import os
+import time
 from beautifulhue.api import Bridge
 
 #WARNING: Adjust this to your local settings
-bridge = Bridge(device={'ip':'10.0.0.26'}, user={'name':os.environ['HUEBRIDGE']})
-
-# get the current setting of the lights
-lights = bridge.light.get({'which':'all'})
+bridge = Bridge(device={'ip':'10.0.0.26'}, user={'name':'your-user-name'})
 
 # check if at least one light is on
-def is_light_on(lights):
-    is_on = False
-    for light in lights['resource']:
-        is_on = is_on or light['state']['on']
-    return is_on
+def is_light_on():
+    resource = {'which':0}
+    group = bridge.group.get(resource)
+    return bool(group['resource']['action']['on'])
+
+
 
 def switch_lights():
-    global lights
-    current_lights = bridge.light.get({'which':'all'})
-    #if at least one light is on, we switch all lights off
-    if is_light_on(current_lights):
-        # store the current state of the lights
-        lights = current_lights
-        for light in current_lights['resource']:
-            resource = {
-                'which':light['id'],
-                'data':{
-                    'state':{'on':False}
-                }
-            }
-            bridge.light.update(resource)
-    else:
-        # if there was at least one light on in the
-        # previous config, we restore it. 
-        # Otherwise we switch all lights on.
-        if is_light_on(lights):
-            for light in lights['resource']:
-                resource = {
-                    'which':light['id'],
-                    'data':{
-                        'state':light['state']
-                    }
-                }
-                bridge.light.update(resource)
-        else:
-            for light in current_lights['resource']:
-                resource = {
-                    'which':light['id'],
-                    'data':{
-                        'state':{'on':True}
-                    }
-                }
-                bridge.light.update(resource)
+    resource = {
+        'which':0,
+        'data':{
+            'action':{'on':is_light_on()}
+        }
+    }
+    bridge.group.update(resource)
  
 
 if __name__ == "__main__":
     # for testing only
-    switch_lights()
-    switch_lights()
+    print "Testing the lights"
+    resource = {'which':0}
+    group = bridge.group.get(resource)
+    print group
+
+    print "Is light on? ", is_light_on()
+    print "Switching..."
+
+    resource = {
+        'which':0,
+        'data':{
+            'action':{'on':(not is_light_on())}
+        }
+    }
+
+    bridge.group.update(resource)
+    print "Is light on? ", is_light_on()
+    time.sleep(1)
+    print "Switching back..."
+
+    resource = {
+        'which':0,
+        'data':{
+            'action':{'on':(not is_light_on())}
+        }
+    }
+    bridge.group.update(resource)
